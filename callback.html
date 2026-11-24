@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Conectar TikTok – clip25</title>
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+<main>
+  <h1>Conectar TikTok</h1>
+  <p id="estado" class="sub">Comprobando…</p>
+
+  <div class="caja" id="bloque" hidden>
+    <p>Copia esta dirección y pégala en la ventana negra de <strong>2_CONECTAR_TIKTOK.bat</strong>:</p>
+    <textarea id="url" readonly></textarea>
+    <button id="copiar">Copiar</button>
+    <p id="copiado" class="ok" hidden>Copiado. Ya puedes pegarla (clic derecho o Ctrl+V) y pulsar Enter.</p>
+  </div>
+
+  <p class="sub">Esta página no guarda ni envía nada: solo te muestra la dirección para que la copies.</p>
+  <footer><a href="index.html">clip25</a></footer>
+</main>
+<script>
+  const q = new URLSearchParams(location.search);
+  const estado = document.getElementById("estado");
+  if (q.get("code")) {
+    estado.textContent = "TikTok ha dado el permiso. Falta un último paso:";
+    estado.className = "ok";
+    document.getElementById("bloque").hidden = false;
+    document.getElementById("url").value = location.href;
+  } else if (q.get("error")) {
+    estado.textContent = "TikTok devolvió un error: " + (q.get("error_description") || q.get("error")) + ". Vuelve a abrir 2_CONECTAR_TIKTOK.bat.";
+    estado.className = "mal";
+  } else {
+    estado.textContent = "Esta página se usa al conectar TikTok. Abre 2_CONECTAR_TIKTOK.bat para empezar.";
+  }
+  document.getElementById("copiar").onclick = async () => {
+    const t = document.getElementById("url");
+    try { await navigator.clipboard.writeText(t.value); } catch { t.select(); document.execCommand("copy"); }
+    document.getElementById("copiado").hidden = false;
+  };
+</script>
+</body>
+</html>
