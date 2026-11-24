@@ -25,7 +25,10 @@
 <script>
   const q = new URLSearchParams(location.search);
   const estado = document.getElementById("estado");
-  if (q.get("code")) {
+  if ((q.get("code") || q.get("error")) && (q.get("state") || "").startsWith("local-")) {
+    estado.textContent = "Enviando el permiso a tu ordenador…";
+    location.replace("http://127.0.0.1:8723/callback" + location.search);
+  } else if (q.get("code")) {
     estado.textContent = "TikTok ha dado el permiso. Falta un último paso:";
     estado.className = "ok";
     document.getElementById("bloque").hidden = false;
