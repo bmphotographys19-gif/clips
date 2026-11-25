@@ -1,0 +1,13 @@
+# Dependencias para Android (Termux). numpy, opencv y cryptography se instalan con "pkg".
+# pydantic-core y jiter se compilan con Rust la primera vez (tarda unos minutos).
+fastapi==0.115.14
+uvicorn==0.54.0
+sqlalchemy==2.0.58
+redis==8.2.0
+rq==3.0.0
+httpx==0.28.1
+pydantic==2.14.4
+pydantic-settings==2.16.3
+anthropic==2.14.0
+yt-dlp==2026.11.23
+python-multipart==0.0.34

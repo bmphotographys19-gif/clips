@@ -5,6 +5,9 @@ mejores momentos, los convierte en clips verticales 9:16 con subtítulos y los p
 oficial. Se maneja desde el móvil (PWA instalable) y trabaja 24/7 en un servidor: no necesitas tener el
 ordenador ni el móvil encendidos.
 
+> **¿Sin servidor?** ClipRadar también puede funcionar dentro de un celular **Android** (con Termux),
+> sin pagar servidor: ver [`android/LEEME.md`](android/LEEME.md).
+
 ---
 
 ## 1. Arquitectura

@@ -108,7 +108,12 @@ def system_status(db: Session = Depends(get_db)):
     checks["ai"] = {"ok": settings.ai_configured,
                     "detail": f"{settings.ai_model} (esfuerzo {settings.ai_effort})" if settings.ai_configured
                     else "falta ANTHROPIC_API_KEY"}
-    checks["transcription"] = {"ok": True, "detail": f"Whisper {settings.whisper_model} local ({settings.whisper_language})"}
+    if settings.transcribe_backend == "whispercpp":
+        ok = bool(shutil.which(settings.whispercpp_bin)) and Path(settings.whispercpp_model or "-").is_file()
+        checks["transcription"] = {"ok": ok, "detail": f"whisper.cpp {Path(settings.whispercpp_model).name} ({settings.whisper_language})"
+                                   if ok else "falta whisper.cpp o su modelo (WHISPERCPP_BIN / WHISPERCPP_MODEL)"}
+    else:
+        checks["transcription"] = {"ok": True, "detail": f"Whisper {settings.whisper_model} local ({settings.whisper_language})"}
     checks["tiktok"] = {"ok": settings.tiktok_configured,
                         "detail": "credenciales configuradas" if settings.tiktok_configured
                         else "faltan TIKTOK_CLIENT_KEY / TIKTOK_CLIENT_SECRET"}

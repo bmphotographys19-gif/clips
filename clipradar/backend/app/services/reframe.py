@@ -11,8 +11,12 @@ import logging
 from dataclasses import dataclass, field
 from pathlib import Path
 
-import cv2
-import numpy as np
+try:  # OpenCV es opcional (p. ej. en Android puede no estar instalado)
+    import cv2
+    import numpy as np
+except ImportError:  # pragma: no cover - depende del equipo
+    cv2 = None
+    np = None
 
 log = logging.getLogger("clipradar.reframe")
 
@@ -68,6 +72,8 @@ def _faces(gray: np.ndarray, front, profile) -> list[tuple[int, int, int, int]]:
 
 
 def analyze(video: Path, forced_mode: str = "auto") -> Plan:
+    if cv2 is None:
+        return _plan_without_opencv(video)
     cap = cv2.VideoCapture(str(video))
     src_w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     src_h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
@@ -168,3 +174,15 @@ def analyze(video: Path, forced_mode: str = "auto") -> Plan:
         stride = len(keyframes) / 80
         keyframes = [keyframes[int(i * stride)] for i in range(80)]
     return Plan("track", src_w, src_h, crop_w, keyframes, ratio)
+
+
+def _plan_without_opencv(video: Path) -> Plan:
+    """Sin OpenCV no hay detección de caras: vídeo completo sobre fondo desenfocado."""
+    from .media import video_info
+
+    info = video_info(video)
+    w, h = info["width"], info["height"]
+    if w / max(h, 1) <= 9 / 16 + 0.01:
+        return Plan("vertical", w, h, w)
+    log.warning("OpenCV no está instalado: se usa el encuadre completo con fondo desenfocado")
+    return Plan("blur", w, h, int(round(h * 9 / 16 / 2) * 2))

@@ -8,6 +8,18 @@ from . import reframe, subtitles
 from .media import run, video_info
 
 OUT_W, OUT_H = 1080, 1920
+_HAS_ASS: bool | None = None
+
+
+def ffmpeg_has_ass() -> bool:
+    """Algunas compilaciones de FFmpeg (p. ej. en móviles) no incluyen libass."""
+    global _HAS_ASS
+    if _HAS_ASS is None:
+        import subprocess
+
+        out = subprocess.run(["ffmpeg", "-hide_banner", "-filters"], capture_output=True, text=True).stdout
+        _HAS_ASS = any(line.split()[1:2] == ["ass"] for line in out.splitlines() if line.strip())
+    return _HAS_ASS
 
 
 def _shift(plan: reframe.Plan, offset: float) -> reframe.Plan:
@@ -59,7 +71,7 @@ def render_clip(source: Path, out_mp4: Path, out_thumb: Path, *, trim_start: flo
     plan = _shift(reframe.analyze(source, layout if layout in ("track", "blur") else "auto"), t0)
 
     ass_path = None
-    if cues:
+    if cues and ffmpeg_has_ass():
         shifted = []
         for c in cues:
             if c["end"] <= t0 or c["start"] >= t1:
