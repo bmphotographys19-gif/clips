@@ -25,7 +25,20 @@
 <script>
   const q = new URLSearchParams(location.search);
   const estado = document.getElementById("estado");
-  if ((q.get("code") || q.get("error")) && (q.get("state") || "").startsWith("local-")) {
+  const st = q.get("state") || "";
+  // ClipRadar AI en la nube: el "state" lleva el origen del panel (cr.<origen base64>.<nonce>).
+  let crOrigin = null;
+  if (st.startsWith("cr.") && st.split(".").length === 3) {
+    try {
+      const b = st.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+      const o = new URL(atob(b + "===".slice((b.length + 3) % 4)));
+      if (o.protocol === "https:") crOrigin = o.origin;
+    } catch (e) { crOrigin = null; }
+  }
+  if ((q.get("code") || q.get("error")) && crOrigin) {
+    estado.textContent = "Volviendo a ClipRadar AI…";
+    location.replace(crOrigin + "/api/tiktok/callback" + location.search);
+  } else if ((q.get("code") || q.get("error")) && st.startsWith("local-")) {
     estado.textContent = "Enviando el permiso a tu ordenador…";
     location.replace("http://127.0.0.1:8723/callback" + location.search);
   } else if (q.get("code")) {

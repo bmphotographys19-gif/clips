@@ -1,0 +1,17 @@
+fastapi==0.115.14
+uvicorn[standard]==0.54.0
+sqlalchemy==2.0.58
+psycopg[binary]==3.3.9
+redis==8.2.0
+rq==3.0.0
+httpx==0.28.1
+pydantic==2.14.4
+pydantic-settings==2.16.3
+cryptography==50.0.2
+anthropic==2.14.0
+yt-dlp==2026.11.23
+opencv-python-headless==4.14.0.94
+numpy==2.2.6
+boto3==1.44.11
+python-multipart==0.0.34
+faster-whisper==1.2.1
