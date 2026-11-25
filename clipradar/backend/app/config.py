@@ -46,6 +46,11 @@ class Settings(BaseSettings):
     ytdlp_cookies_file: str = ""  # opcional: cookies para yt-dlp
 
     # --- Transcripción ---
+    # faster_whisper (servidor) | whispercpp (Android/Termux u otros equipos ARM)
+    transcribe_backend: str = "faster_whisper"
+    whispercpp_bin: str = "whisper-cli"
+    whispercpp_model: str = ""  # ruta al archivo ggml-*.bin
+    whisper_threads: int = 0  # 0 = automático
     whisper_model: str = "small"  # tiny | base | small | medium | large-v3
     whisper_compute_type: str = "int8"
     whisper_language: str = "es"

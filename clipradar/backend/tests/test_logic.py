@@ -102,3 +102,45 @@ def test_render_produces_tiktok_format(tmp_path):
     assert (info["width"], info["height"]) == (1080, 1920) and info["has_audio"]
     assert 3.8 < res["duration"] < 4.3
     assert (tmp_path / "o.jpg").exists()
+
+
+def test_ffmpeg_has_ass_detects_filter():
+    from app.services import render
+    assert render.ffmpeg_has_ass() is True
+
+
+def test_whispercpp_backend(tmp_path, monkeypatch):
+    """Simula el binario whisper-cli con su formato JSON (-ml 1 -sow -oj)."""
+    import json as _json
+    from app.config import get_settings
+    from app.services import transcribe
+
+    model = tmp_path / "ggml-base.bin"
+    model.write_bytes(b"x")
+    segs = [("Hola", 0, 400), ("a", 450, 600), ("todos.", 650, 1100), ("[Música]", 1200, 2000),
+            ("¿Qué", 3000, 3300), ("pasó", 3350, 3700), ("?", 3700, 3750)]
+    payload = {"transcription": [{"offsets": {"from": a, "to": b}, "text": " " + t} for t, a, b in segs]}
+    fake = tmp_path / "whisper-cli"
+    fake.write_text("#!/usr/bin/env python3\nimport sys, json\nargs=sys.argv\n"
+                    f"out=args[args.index('-of')+1]\nopen(out+'.json','w').write({_json.dumps(_json.dumps(payload))})\n")
+    fake.chmod(0o755)
+    s = get_settings()
+    monkeypatch.setattr(s, "transcribe_backend", "whispercpp")
+    monkeypatch.setattr(s, "whispercpp_bin", str(fake))
+    monkeypatch.setattr(s, "whispercpp_model", str(model))
+    wav = tmp_path / "a.wav"
+    wav.write_bytes(b"")
+    lines = transcribe.transcribe(wav)
+    assert [l["text"] for l in lines] == ["Hola a todos.", "¿Qué pasó?"]
+    assert lines[1]["start"] == 3.0 and lines[1]["end"] == 3.75
+    assert [w["w"] for w in lines[1]["words"]] == ["¿Qué", "pasó?"]
+
+
+def test_reframe_without_opencv(tmp_path, monkeypatch):
+    from app.services import reframe
+    src = tmp_path / "s.mp4"
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "lavfi", "-i", "testsrc2=s=640x360:r=25:d=1",
+                    "-pix_fmt", "yuv420p", str(src)], check=True)
+    monkeypatch.setattr(reframe, "cv2", None)
+    plan = reframe.analyze(src)
+    assert plan.mode == "blur" and plan.src_h == 360

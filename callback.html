@@ -32,7 +32,8 @@
     try {
       const b = st.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
       const o = new URL(atob(b + "===".slice((b.length + 3) % 4)));
-      if (o.protocol === "https:") crOrigin = o.origin;
+      const local = o.protocol === "http:" && (o.hostname === "localhost" || o.hostname === "127.0.0.1");
+      if (o.protocol === "https:" || local) crOrigin = o.origin;  // local = ClipRadar en el propio móvil
     } catch (e) { crOrigin = null; }
   }
   if ((q.get("code") || q.get("error")) && crOrigin) {
